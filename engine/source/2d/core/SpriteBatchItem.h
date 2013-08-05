@@ -191,8 +191,10 @@ protected:
     LogicalPosition     mLogicalPosition;
 
     bool                mVisible;
+    bool                mExplicitMode;
 
     Vector2             mLocalPosition;
+    Vector2             mExplicitVerts[4];
     F32                 mLocalAngle;
     Vector2             mSize;
     F32                 mDepth;
@@ -240,8 +242,13 @@ public:
     inline void setVisible( const bool visible ) { mVisible = visible; }
     inline bool getVisible( void ) const { return mVisible; }
 
+    inline void setExplicitMode( const bool explicitMode ) { mExplicitMode = explicitMode; }
+    inline bool getExplicitMode( void ) const { return mExplicitMode; }
+    
     inline void setLocalPosition( const Vector2& localPosition ) { mLocalPosition = localPosition; mLocalTransformDirty = true; }
     inline Vector2 getLocalPosition( void ) const { return mLocalPosition; }
+
+    void setExplicitVertices( const Vector2* explicitVertices );
 
     inline void setLocalAngle( const F32 localAngle ) { mLocalAngle = localAngle; mLocalTransformDirty = true; }
     inline F32 getLocalAngle( void ) const { return mLocalAngle; }
@@ -291,6 +298,7 @@ public:
 
     virtual void copyTo( SpriteBatchItem* pSpriteBatchItem ) const;
 
+    inline const Vector2* getLocalOOBB( void ) const { return mLocalOOBB; }
     inline const Vector2* getRenderOOBB( void ) const { return mRenderOOBB; }
 
     void prepareRender( SceneRenderRequest* pSceneRenderRequest, const U32 batchTransformId );
