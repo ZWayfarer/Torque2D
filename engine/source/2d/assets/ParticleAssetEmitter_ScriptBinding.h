@@ -75,6 +75,107 @@ ConsoleMethod(ParticleAssetEmitter, getEmitterType, const char*, 2, 2,  "() Gets
 
 //-----------------------------------------------------------------------------
 
+ConsoleMethod(ParticleAssetEmitter, setEmitterOffset, void, 3, 4,   "(float X / float Y) - Offsets the position of the emitter relative to the effect or player position.\n"
+                                                                    "@return No return value.")
+{
+    // Grab the element count.
+    U32 elementCount =Utility::mGetStringElementCount(argv[2]);
+    
+    // ("positionX positionY")
+    if ( (elementCount == 2) && (argc < 4) )
+    {
+        object->setEmitterOffset( Vector2( argv[2] ) );
+        return;
+    }
+    
+    // (positionX, positionY)
+    if ( (elementCount == 1) && (argc > 3) )
+    {
+        object->setEmitterOffset( Vector2( dAtof(argv[2]), dAtof(argv[3]) ) );
+        return;
+    }
+    
+    // Warn.
+    Con::warnf( "ParticleAssetEmitter::setEmitterOffset() - Invalid number of parameters!" );
+}
+
+//------------------------------------------------------------------------------
+
+ConsoleMethod(ParticleAssetEmitter, getEmitterOffset, const char*, 2, 2,    "Gets the emitter offset position.\n"
+                                                                            "@return (float x/float y) The offset of the emitter relative to the effect or player position.")
+{
+    return object->getEmitterOffset().scriptThis();
+}
+
+//------------------------------------------------------------------------------
+
+ConsoleMethod(ParticleAssetEmitter, setEmitterSize, void, 3, 4, "(float width / float height) - Sets the emitter size.\n"
+                                                                "@param width The width of the emitter.\n"
+                                                                "@param height The height of the emitter.\n"
+                                                                "@return No return value.")
+{
+    F32 width, height;
+    
+    const U32 elementCount = Utility::mGetStringElementCount(argv[2]);
+    
+    // ("width height")
+    if ((elementCount == 2) && (argc == 3))
+    {
+        width = dAtof(Utility::mGetStringElement(argv[2], 0));
+        height = dAtof(Utility::mGetStringElement(argv[2], 1));
+    }
+    
+    // (width, [height])
+    else if (elementCount == 1)
+    {
+        width = dAtof(argv[2]);
+        
+        if (argc > 3)
+            height = dAtof(argv[3]);
+        else
+            height = width;
+    }
+    
+    // Invalid
+    else
+    {
+        Con::warnf("ParticleAssetEmitter::setEmitterSize() - Invalid number of parameters!");
+        return;
+    }
+    
+    // Set Size.
+    object->setEmitterSize(Vector2(width, height));
+}
+
+//------------------------------------------------------------------------------
+
+ConsoleMethod(ParticleAssetEmitter, getEmitterSize, const char*, 2, 2,  "Gets the emitter size.\n"
+                                                                        "@return (float width/float height) The width and height of the emitter.")
+{
+    return object->getEmitterSize().scriptThis();
+}
+
+//------------------------------------------------------------------------------
+
+ConsoleMethod(ParticleAssetEmitter, setEmitterAngle, void, 3, 3,    "(float angle) - Sets the emitter angle.\n"
+                                                                    "@param angle The angle of the emitter."
+                                                                    "@return No return value.")
+{
+    // Set Rotation.
+    object->setEmitterAngle( mDegToRad( dAtof(argv[2]) ) );
+}
+
+//-----------------------------------------------------------------------------
+
+ConsoleMethod(ParticleAssetEmitter, getEmitterAngle, F32, 2, 2, "() Gets the emitter angle.\n"
+                                                                "@return (float angle) The emitter's current angle.")
+{
+    // Return angle.
+    return mRadToDeg( object->getEmitterAngle());
+}
+
+//-----------------------------------------------------------------------------
+
 ConsoleMethod(ParticleAssetEmitter, setFixedAspect, void, 3, 3,     "(fixedAspect) Sets the emitter to used a fixed-aspect for particles.\n"
                                                                     "@param fixedAspect Whether to use a fixed-aspect or not.\n"
                                                                     "@return No return value." )
@@ -330,10 +431,28 @@ ConsoleMethod(ParticleAssetEmitter, setImage, bool, 3, 4,   "(imageAssetId, [fra
                                                             "@param frame The frame of the image asset Id to use.  Optional.\n"
                                                             "@return Whether the operation was successful or not." )
 {
-    // Fetch the frame.
-    const U32 frame = argc >= 4 ? dAtoi(argv[3]) : 0;
-
-    return object->setImage( argv[2], frame );
+    // Was a frame specified?
+    if (argc >= 4)
+    {
+        // Was it a number or a string?
+        if (!dIsalpha(*argv[3]))
+        {
+            // Fetch the numerical frame and set the image
+            const U32 frame = argc >= 4 ? dAtoi(argv[3]) : 0;
+            return object->setImage(argv[2], frame);
+        }
+        else
+        {
+            // Set the image and pass the named frame string
+            return object->setImage(argv[2], argv[3]);
+        }
+    }
+    else
+    {
+        // Frame was not specified, use default 0 and set the image
+        const U32 frame = 0;
+        return object->setImage( argv[2], frame);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -359,6 +478,40 @@ ConsoleMethod(ParticleAssetEmitter, getImageFrame, S32, 2, 2,    "() Gets the as
                                                                     "@return The asset Id of the image asset assigned to the emitter or nothing if no image is assigned." )
 {
     return object->getImageFrame();
+}
+
+//------------------------------------------------------------------------------
+
+ConsoleMethod(ParticleAssetEmitter, setRandomImageFrame, void, 3, 3,    "(randomImageFrame) Disables the Frame field and uses a random frame from the specified ImageAsset.\n"
+                                                                        "@param randomImageFrame Whether to use a random image frame or not.\n"
+                                                                        "@return No return value." )
+{
+    object->setRandomImageFrame( dAtob(argv[2]) );
+}
+
+//------------------------------------------------------------------------------
+
+ConsoleMethod(ParticleAssetEmitter, getRandomImageFrame, bool, 2, 2,    "() Gets whether a random frame from the specified ImageAsset is being used or not.\n"
+                                                                        "@return Whether to use a random image frame or not." )
+{
+    return object->getRandomImageFrame();
+}
+
+//------------------------------------------------------------------------------
+
+ConsoleMethod(ParticleAssetEmitter, setImageFrameName, bool, 3, 3,  "(frame) Sets the emitter to use the specified image frame by name.\n"
+                                                                    "@param frame String containing the name of the frame in the image to use..\n"
+                                                                    "@return Whether the operation was successful or not." )
+{
+    return object->setImageFrameName( argv[2] );
+}
+
+//------------------------------------------------------------------------------
+
+ConsoleMethod(ParticleAssetEmitter, getImageFrameName, const char*, 2, 2, "() Gets the asset Id of the image asset assigned to the emitter.\n"
+                                                                          "@return The asset Id of the image asset assigned to the emitter or nothing if no image is assigned." )
+{
+    return object->getImageFrameName();
 }
 
 //------------------------------------------------------------------------------
